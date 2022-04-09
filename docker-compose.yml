@@ -1,37 +1,36 @@
 services:
-    wordpress:
-        image: wordpress
-        restart: always
-        ports:
-            - 8080:80
-        environment:
-            WORDPRESS_DB_HOST: db
-            WORDPRESS_DB_USER: user
-            WORDPRESS_DB_PASSWORD: password
-            WORDPRESS_DB_NAME: wp
-        volumes: 
-            - type: volume
-              source: wordpress
-              target: /var/www/html
-            - logs:/var/log
+    client:
+        image: dns
+        dns: 
+            -172.20.0.2
+        command: sleep 1000
+        networks:
+            letscode-net:
+                ipv4_address: 172.20.0.3
         depends_on:
-            - db
-    db:
-        image: mysql:5.7
-        restart: always
-        environment:
-            MYSQL_DATABASE: wp
-            MYSQL_USER: user
-            MYSQL_PASSWORD: password
-            MYSQL_ROOT_PASSWORD: '1'
-        volumes:
-            - /db:/var/lib/mysql
-volumes:
-    wordpress:
-        external: true
-        name: some-volume
-    db:
-    logs:
-    
+            - dns-server
+            - target
+    target:
+        image: dns
+        dns: 
+            -172.20.0.2
+        command: sleep 1000
+        networks:
+            letscode-net:
+                ipv4_address: 172.20.0.4
+    dns-server:
+        image: internetsystemsconsortium/bind9:9.16
+        expose:
+            - 53/udp
+            - 53/tcp
+            - 953/tcp
+        networks:
+            letscode-net:
+                ipv4_address: 172.20.0.2
 
+networks:
+    letscode-net:
+        external: true
+
+    
 
